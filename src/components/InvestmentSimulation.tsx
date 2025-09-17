@@ -1,27 +1,7 @@
 import { useState, useEffect } from "react";
-import { Line } from "react-chartjs-2";
 import { Button } from "@/components/ui/button";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
+import CandlestickChart from "./CandlestickChart";
 import PayoutSlip from "./PayoutSlip";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 interface InvestmentSimulationProps {
   name: string;
@@ -31,7 +11,7 @@ interface InvestmentSimulationProps {
 
 const InvestmentSimulation = ({ name, amount, onComplete }: InvestmentSimulationProps) => {
   const [progress, setProgress] = useState(0);
-  const [chartData, setChartData] = useState<any>(null);
+  const [currentValue, setCurrentValue] = useState(amount);
   const [isComplete, setIsComplete] = useState(false);
   const [showPayout, setShowPayout] = useState(false);
   const finalAmount = amount * 102;
@@ -47,33 +27,6 @@ const InvestmentSimulation = ({ name, amount, onComplete }: InvestmentSimulation
       const newProgress = (currentStep / steps) * 100;
       setProgress(newProgress);
 
-      // Generate realistic chart data
-      const labels = Array.from({ length: currentStep + 1 }, (_, i) =>
-        new Date(Date.now() - (steps - i) * interval).toLocaleTimeString()
-      );
-
-      const dataPoints = Array.from({ length: currentStep + 1 }, (_, i) => {
-        const baseGrowth = (i / steps) * (finalAmount - amount);
-        const volatility = Math.sin(i * 0.1) * (amount * 0.02);
-        return Math.max(amount, amount + baseGrowth + volatility);
-      });
-
-      setChartData({
-        labels: labels.slice(-20), // Show last 20 points
-        datasets: [
-          {
-            label: "Investment Value (₹)",
-            data: dataPoints.slice(-20),
-            borderColor: "hsl(220, 95%, 50%)",
-            backgroundColor: "hsl(220, 95%, 50%, 0.1)",
-            borderWidth: 3,
-            tension: 0.4,
-            pointRadius: 0,
-            pointHoverRadius: 6,
-          },
-        ],
-      });
-
       if (currentStep >= steps) {
         clearInterval(timer);
         setIsComplete(true);
@@ -83,46 +36,15 @@ const InvestmentSimulation = ({ name, amount, onComplete }: InvestmentSimulation
     return () => clearInterval(timer);
   }, [amount, finalAmount]);
 
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: false,
-      },
-      title: {
-        display: true,
-        text: "Live Investment Performance",
-        color: "hsl(215, 25%, 15%)",
-        font: {
-          size: 16,
-          weight: "bold" as const,
-        },
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: false,
-        grid: {
-          color: "hsl(215, 15%, 88%)",
-        },
-        ticks: {
-          color: "hsl(215, 15%, 45%)",
-          callback: function (value: any) {
-            return "₹" + value.toLocaleString();
-          },
-        },
-      },
-      x: {
-        grid: {
-          color: "hsl(215, 15%, 88%)",
-        },
-        ticks: {
-          color: "hsl(215, 15%, 45%)",
-          maxTicksLimit: 5,
-        },
-      },
-    },
+  const handlePriceUpdate = (newPrice: number) => {
+    setCurrentValue(newPrice);
   };
+
+  const handleChartComplete = () => {
+    // Chart is complete, current value should already be at final profit
+    setIsComplete(true);
+  };
+
 
   if (showPayout) {
     return <PayoutSlip name={name} initialAmount={amount} finalAmount={finalAmount} onClose={onComplete} />;
@@ -145,14 +67,14 @@ const InvestmentSimulation = ({ name, amount, onComplete }: InvestmentSimulation
         />
       </div>
 
-      {/* Chart */}
-      {chartData && (
-        <div className="bg-card p-3 sm:p-6 rounded-xl shadow-card overflow-hidden">
-          <div className="w-full h-48 sm:h-64">
-            <Line data={chartData} options={chartOptions} />
-          </div>
-        </div>
-      )}
+      {/* Candlestick Chart */}
+      <CandlestickChart 
+        initialPrice={amount}
+        finalPrice={finalAmount}
+        duration={90000}
+        onDataUpdate={handlePriceUpdate}
+        onComplete={handleChartComplete}
+      />
 
       {/* Live Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -163,7 +85,7 @@ const InvestmentSimulation = ({ name, amount, onComplete }: InvestmentSimulation
         <div className="bg-gradient-card p-3 sm:p-4 rounded-xl text-center">
           <p className="text-sm text-muted-foreground">Current Value</p>
           <p className="text-xl sm:text-2xl font-bold text-success">
-            ₹{chartData?.datasets[0]?.data?.slice(-1)[0]?.toLocaleString() || amount.toLocaleString()}
+            ₹{currentValue.toLocaleString()}
           </p>
         </div>
       </div>

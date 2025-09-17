@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { TrendingUp, Shield, Zap } from "lucide-react";
+import { TrendingUp, Shield, Zap, Menu, X } from "lucide-react";
 import InvestmentModal from "./InvestmentModal";
 
 const HomePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -19,6 +20,7 @@ const HomePage = () => {
                 InvestPro
               </h1>
             </div>
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
               <a href="#" className="text-foreground/80 hover:text-primary transition-colors">Home</a>
               <Dialog>
@@ -61,7 +63,67 @@ const HomePage = () => {
                 </DialogContent>
               </Dialog>
             </nav>
+            
+            {/* Mobile Menu Button */}
+            <button 
+              className="md:hidden p-2 rounded-md text-foreground/80 hover:text-primary hover:bg-muted/50 transition-colors"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
           </div>
+          
+          {/* Mobile Navigation Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden mt-4 pb-4 border-t border-border/50">
+              <nav className="flex flex-col space-y-3 pt-4">
+                <a href="#" className="text-foreground/80 hover:text-primary transition-colors py-2">Home</a>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button className="text-foreground/80 hover:text-primary transition-colors py-2 text-left">
+                      Privacy Policy
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md bg-gradient-card border-0 shadow-glow max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center">
+                        Privacy Policy
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 text-sm text-muted-foreground">
+                      <div className="bg-muted/50 p-4 rounded-lg">
+                        <h3 className="font-semibold text-foreground mb-2">Investment Cancellation Policy</h3>
+                        <p>
+                          If your investment is cancelled at any stage of the process, 
+                          the full investment amount will be refunded to your original 
+                          payment method within 7-15 business days.
+                        </p>
+                      </div>
+                      <div className="bg-muted/50 p-4 rounded-lg">
+                        <h3 className="font-semibold text-foreground mb-2">Data Protection</h3>
+                        <p>
+                          We are committed to protecting your personal information and 
+                          ensuring secure transactions. All data is encrypted and stored 
+                          securely in compliance with industry standards.
+                        </p>
+                      </div>
+                      <div className="bg-muted/50 p-4 rounded-lg">
+                        <h3 className="font-semibold text-foreground mb-2">Contact Information</h3>
+                        <p>
+                          For any queries regarding refunds or privacy concerns, 
+                          please contact our support team at support@investpro.com
+                        </p>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </nav>
+            </div>
+          )}
         </div>
       </header>
 
